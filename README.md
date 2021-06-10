@@ -4,33 +4,12 @@ This is a simple means of building a Docker image that can be used for building 
 Please note this is just something I've hacked together, I am quite sure it'll need tweaking for real world usage!
 
 # Build
-To create the image, the following assumes bash, but that's mainly just to set an externalised variable with the version:
-```bash
-read BUILDER_VERSION
-docker build --tag repo/something:${BUILDER_VERSION} --tag repo/something:latest --build-arg BUILDER_VERSION .
-```
+There is a [file](./build.sh "build.sh") that has some commands in covering image build, tagging and upload to ECR (public and private repo).
 
-# Run Locally
-To run `tfsec`, assumes the Terraform configuration is in `~/Development/Terraform`, and supplies the `terraform.tfvars` file as an example of additional parameters:
-```bash
-$ cd ~/Development/Terraform
-$ docker run --rm --volume `pwd`:/tmp/$$ repo/something:latest /tmp/$$ --tfvars-file /tmp/$$/terraform.tfvars
-```
+# In use
+The [Example Terraform](./Example-Terraform "Example Terraform") directory contains a trivial Terraform config and a [buildspec.yml](./Example-Terraform/buildspec.yml "buildspec.yml") file for the CodeBuild project.
 
-# Pushing to AWS Elastic Container Registry
-This is an example of pushing to a public repo, the specifics will need to be reviewed for your setup:
-```bash
-$ aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/deadbeef
-$ docker tag repo:latest public.ecr.aws/deadbeef/repo:latest
-$ docker push public.ecr.aws/deadbeef/repo:latest
-```
-
-For a private repo:
-```bash
-$ aws ecr get-login-password --region eu-west-2 | docker login --username AWS --password-stdin 123456789012.dkr.ecr.region.amazonaws.com
-$ docker tag repo/something:latest 123456789012.dkr.ecr.region.amazonaws.com/repo/something:latest
-$ docker push 123456789012.dkr.ecr.region.amazonaws.com/repo/something:latest
-```
+Relevant IAM policies will need to be attached to the CodeBuild service role, not only for the ECR pull, but S3 (for the state) and in this example, `logs:...` too.
 
 # Links
 - https://docs.docker.com/engine/reference/commandline/build/
