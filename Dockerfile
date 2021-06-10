@@ -1,22 +1,26 @@
-FROM alpine
-
 #
-# change the value to invalidate the layers below and force a rebuild...
+# loads of ARG entries to pull through the layers
+# https://docs.docker.com/engine/reference/builder/#scope
 #
-ENV REFRESHED 2021-06-09
-
-LABEL description="CodeBuild image with terraform & tfsec"
-LABEL version="${BUILDER_VERSION}"
+ARG TERRAFORM_VERSION
+ARG TFSEC_VERSION
+ARG BUILDER_VERSION
 
 #
 # start from a base of a selected terraform:light base image
 #
-FROM hashicorp/terraform:latest AS terraform
+FROM hashicorp/terraform:${TERRAFORM_VERSION} AS terraform
+ARG TERRAFORM_VERSION
+ARG TFSEC_VERSION
+ARG BUILDER_VERSION
 
 #
 # add tfsec
 #
-FROM tfsec/tfsec:latest AS tfsec
+FROM tfsec/tfsec:${TFSEC_VERSION} AS tfsec
+ARG TERRAFORM_VERSION
+ARG TFSEC_VERSION
+ARG BUILDER_VERSION
 
 WORKDIR /
 USER root
@@ -29,3 +33,10 @@ RUN cp /usr/bin/tfsec /usr/local/bin/tfsec
 #
 COPY provider.tf provider.tf
 RUN terraform init
+
+#
+# change the value to invalidate the layers below and force a rebuild...
+# the ARG pull through is just for this ¯\_(ツ)_/¯
+#
+LABEL description="CodeBuild image with terraform:${TERRAFORM_VERSION} & tfsec:${TFSEC_VERSION}"
+LABEL version="${BUILDER_VERSION}"
