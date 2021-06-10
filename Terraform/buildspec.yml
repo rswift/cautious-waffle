@@ -1,0 +1,19 @@
+# https://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html
+
+version: 0.2
+
+proxy:
+  upload-artifacts: no
+  logs: yes
+
+phases:
+  pre_build:
+    on-failure: CONTINUE
+    commands:
+      - cd ${CODEBUILD_SRC_DIR}
+      - tfsec .
+      - terraform init
+  build:
+    on-failure: ABORT
+    commands:
+      - terraform apply -auto-approve
